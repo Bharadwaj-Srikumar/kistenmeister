@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	// "github.com/Bharadwaj-Srikumar/kistenmeister/tree/main/datenbank"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -15,10 +14,6 @@ const dbPath = "./kistenmeister/Kistenmeister.db"
 
 /*type DB struct {
 	Database *sql.DB
-}*/
-
-/*type Routes struct {
-	Database datenbank.DB
 }*/
 
 func setupRouter() *gin.Engine {
@@ -31,6 +26,8 @@ func setupRouter() *gin.Engine {
 		if _, err := os.Stat(dbPath); err == nil { // wenn Datenbank schon vorhanden
 			c.String(http.StatusOK, "Datenbank existiert bereits")
 		} else if db, err := sql.Open("sqlite3", dbPath); err == nil { // wenn Datenbank nicht vorhanden
+			// TODO Datenbank
+
 			defer db.Close()
 			c.String(http.StatusCreated, "Datenbank erfolgreich erstellt")
 		} else { // Fehler bei der Eingabe des Pfads
