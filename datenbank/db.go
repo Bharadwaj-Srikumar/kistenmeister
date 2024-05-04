@@ -27,7 +27,7 @@ type DB struct {
 }*/
 
 func (d *DB) InitDB() {
-	db, err := sql.Open("sqlite3", "/data/database/photo.db")
+	db, err := sql.Open("sqlite3", "./kistenmeister/datenbank/db")
 	if err != nil {
 		log.Fatal(err)
 	}

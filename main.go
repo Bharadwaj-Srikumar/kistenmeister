@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 
@@ -10,15 +11,16 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const dbPath = "./kistenmeister/Kistenmeister.db"
+const dbPath = "./kistenmeister/datenbank/db"
 
-/*type DB struct {
+type DB struct {
 	Database *sql.DB
-}*/
+}
 
 func setupRouter() *gin.Engine {
 
 	r := gin.Default()
+	var d *DB
 
 	// Route zum Erstellen der Datenbank, wenn nicht bereits vorhanden
 	r.GET("/createDB", func(c *gin.Context) {
@@ -27,7 +29,17 @@ func setupRouter() *gin.Engine {
 			c.String(http.StatusOK, "Datenbank existiert bereits")
 		} else if db, err := sql.Open("sqlite3", dbPath); err == nil { // wenn Datenbank nicht vorhanden
 			// TODO Datenbank
+			d.Database = db
 
+			initStmt := `
+				CREATE TABLE IF NOT EXISTS Kiste (id INTEGER PRIMARY KEY, Name TEXT, Beschreibung TEXT, Ersteller TEXT, Erstellungsdatum DATETIME, Änderer TEXT, Änderungssdatum DATETIME, Verantwortlicher TEXT, QRCode BLOB, Ort TEXT);
+				CREATE TABLE IF NOT EXISTS Kommentare(id INTEGER primary key not null, Kommentar text, Ersteller text,  Erstellungsdatum datetime, FOREIGN KEY(box_id) REFERENCES kisten(id));
+				CREATE TABLE bilder(id INTEGER primary key not null, bild BLOB,Ersteller text, Erstellungsdatum datetime,FOREIGN KEY(box_id) REFERENCES kisten(id)),`
+
+			_, err = d.Database.Exec(initStmt)
+			if err != nil {
+				log.Fatalf("%q: %s\n", err, initStmt)
+			}
 			defer db.Close()
 			c.String(http.StatusCreated, "Datenbank erfolgreich erstellt")
 		} else { // Fehler bei der Eingabe des Pfads
