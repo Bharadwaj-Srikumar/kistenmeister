@@ -2,11 +2,8 @@ package main
 
 import (
 	"database/sql"
-	//"fmt"
 	"log"
 	"net/http"
-
-	//"os"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -25,16 +22,17 @@ func ConnectDatabase() error {
 }
 
 type kiste struct {
-	id               int    `json:"id"`
-	Name             string `json:"Name"`
-	Beschreibung     string `json:"Beschreibung"`
-	Ersteller        string `json:"Ersteller"`
-	Erstellungsdatum string `json:"Erstellungsdatum"`
-	Änderer          string `json:"Änderer"`
-	Änderungssdatum  string `json:"Änderungssdatum"`
-	Verantwortlicher string `json:"Verantwortlicher"`
-	//QRCode           string `json:"QRCode"`
-	Ort string `json:"Ort"`
+	// json Tags müssen zu jedem Attribut hinzugefügt werden
+	id               int
+	Name             string
+	Beschreibung     string
+	Ersteller        string
+	Erstellungsdatum string
+	Änderer          string
+	Änderungssdatum  string
+	Verantwortlicher string
+	//QRCode  string -- funktioniert nicht
+	Ort string
 }
 
 func checkErr(err error) {
@@ -51,53 +49,15 @@ func main() {
 	{
 		v1.GET("/kisten", getKisten)
 		v1.GET("/kiste/:id", getKiste)
-		v1.POST("/kiste", createKiste)
-		v1.PUT("/kiste/:id", aktKiste)
-		v1.DELETE("/kiste/:id", löschenKiste)
+		v1.POST("/kiste", erstelleKiste)
+		v1.PUT("/kiste/:id", aktualisereKiste)
+		v1.DELETE("/kiste/:id", löscheKiste)
 	}
 	// Listen and Serve in 0.0.0.0:8080
 	r.Run(":8080")
 }
 
-// Read box
-// TODO prüfen ob HEAD oder GET besser passt
-func getKiste(c *gin.Context) {
-	ID := c.Params.ByName("id")
-	//TODO Get box data from SQlite
-
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste lesen": ID})
-}
-
-// Create box
-func createKiste(c *gin.Context) {
-	//TODO Create box data in SQlite
-
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste erstellen": "newid"})
-}
-
-// Update box
-// TODO prüfen ob PATCH oder PUT besser passt
-func aktKiste(c *gin.Context) {
-	ID := c.Params.ByName("id")
-
-	//TODO Update box data in SQlite
-
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste aktualiseren": ID})
-}
-
-// Delete box
-func löschenKiste(c *gin.Context) {
-	ID := c.Params.ByName("id")
-
-	//TODO Delete box data in SQlite
-
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste löschen": ID})
-}
-
+// Lese alle Ksiten in der Datenbank
 func getKisten(c *gin.Context) {
 
 	alleKisten, err := GetKisten()
@@ -112,7 +72,45 @@ func getKisten(c *gin.Context) {
 
 }
 
-// Get all boxes
+// Lese Kiste mit angegebenem id
+// TODO prüfen ob HEAD oder GET besser passt
+func getKiste(c *gin.Context) {
+	ID := c.Params.ByName("id")
+	//TODO Get box data from SQlite
+
+	//TODO Return box data
+	c.JSON(http.StatusOK, gin.H{"Kiste lesen": ID})
+}
+
+// Erstelle neue Kiste
+func erstelleKiste(c *gin.Context) {
+	//TODO Create box data in SQlite
+
+	//TODO Return box data
+	c.JSON(http.StatusOK, gin.H{"Kiste erstellen": "newid"})
+}
+
+// Aktualisere Kiste
+// TODO prüfen ob PATCH oder PUT besser passt
+func aktualisereKiste(c *gin.Context) {
+	ID := c.Params.ByName("id")
+	//TODO Update box data in SQlite
+
+	//TODO Return box data
+	c.JSON(http.StatusOK, gin.H{"Kiste aktualiseren": ID})
+}
+
+// Lösche Kiste
+func löscheKiste(c *gin.Context) {
+	ID := c.Params.ByName("id")
+
+	//TODO Delete box data in SQlite
+
+	//TODO Return box data
+	c.JSON(http.StatusOK, gin.H{"Kiste löschen": ID})
+}
+
+// Funktion zum Abfragen aller Kiste
 func GetKisten() ([]kiste, error) {
 
 	rows, err := DB.Query("SELECT id, Name, Beschreibung, Ersteller, Erstellungsdatum, Änderer, Änderungssdatum, Verantwortlicher, Ort from Kiste;")
