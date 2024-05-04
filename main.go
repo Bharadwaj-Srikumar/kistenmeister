@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	// "github.com/Bharadwaj-Srikumar/kistenmeister/tree/main/datenbank"
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -17,7 +18,7 @@ const dbPath = "./kistenmeister/Kistenmeister.db"
 }*/
 
 /*type Routes struct {
-	Database db.DB
+	Database datenbank.DB
 }*/
 
 func setupRouter() *gin.Engine {
