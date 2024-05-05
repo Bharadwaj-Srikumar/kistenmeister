@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
@@ -27,91 +28,129 @@ type kiste struct {
 	Name             string
 	Beschreibung     string
 	Ersteller        string
-	Erstellungsdatum string
+	Erstellungsdatum time.Time
 	Änderer          string
-	Änderungssdatum  string
+	Änderungssdatum  time.Time
 	Verantwortlicher string
-	//QRCode  string -- funktioniert nicht
+	// QRCode        blob -- konvertieren von BLOB in string klappt aktuell nicht
 	Ort string
 }
 
-func checkErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
+type kommentar struct {
+	// json Tags müssen zu jedem Attribut hinzugefügt werden
+	id               int
+	Kommentar        string
+	Ersteller        string
+	Erstellungsdatum time.Time
+	box_id           int
 }
 
-func main() {
-	ConnectDatabase()
+type bild struct {
+	// json Tags müssen zu jedem Attribut hinzugefügt werden
+	id int
+	// bild          blob -- konvertieren von BLOB in string klappt aktuell nicht
+	Ersteller        string
+	Erstellungsdatum time.Time
+	box_id           int
+}
+
+func setupRouter() *gin.Engine {
+
 	r := gin.Default()
-	// API v1
-	v1 := r.Group("/api/v1")
-	{
-		v1.GET("/kisten", getKisten)
-		v1.GET("/kiste/:id", getKiste)
-		v1.POST("/kiste", erstelleKiste)
-		v1.PUT("/kiste/:id", aktualisereKiste)
-		v1.DELETE("/kiste/:id", löscheKiste)
-	}
-	// Listen and Serve in 0.0.0.0:8080
-	r.Run(":8080")
-}
 
-// Lese alle Ksiten in der Datenbank
-func getKisten(c *gin.Context) {
+	// Ping test
+	r.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
 
-	alleKisten, err := GetKisten()
-	checkErr(err)
+	// Read box
+	//TODO prüfen ob HEAD oder GET besser passt
+	r.GET("/box/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
+		//TODO Get box data from SQlite
 
-	if alleKisten == nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "No Records Found"})
-		return
-	} else {
-		c.JSON(http.StatusOK, gin.H{"data": alleKisten})
-	}
+		//TODO Return box data
+		c.JSON(http.StatusOK, gin.H{"box read": id})
+	})
 
-}
+	// Create box
+	r.POST("/box", func(c *gin.Context) {
+		//TODO Create box data in SQlite
 
-// Lese Kiste mit angegebenem id
-// TODO prüfen ob HEAD oder GET besser passt
-func getKiste(c *gin.Context) {
-	ID := c.Params.ByName("id")
-	//TODO Get box data from SQlite
+		//TODO Return box data
+		c.JSON(http.StatusOK, gin.H{"box create": "newid"})
+	})
 
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste lesen": ID})
-}
+	// Update box
+	//TODO prüfen ob PATCH oder PUT besser passt
+	r.PUT("/box/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
+		//TODO Update box data in SQlite
 
-// Erstelle neue Kiste
-func erstelleKiste(c *gin.Context) {
-	//TODO Create box data in SQlite
+		//TODO Return box data
+		c.JSON(http.StatusOK, gin.H{"box update": id})
+	})
 
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste erstellen": "newid"})
-}
+	// Delete box
+	r.DELETE("/box/:id", func(c *gin.Context) {
+		id := c.Params.ByName("id")
 
-// Aktualisere Kiste
-// TODO prüfen ob PATCH oder PUT besser passt
-func aktualisereKiste(c *gin.Context) {
-	ID := c.Params.ByName("id")
-	//TODO Update box data in SQlite
+		//TODO Delete box data in SQlite
 
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste aktualiseren": ID})
-}
+		//TODO Return box data
+		c.JSON(http.StatusOK, gin.H{"box delete": id})
+	})
 
-// Lösche Kiste
-func löscheKiste(c *gin.Context) {
-	ID := c.Params.ByName("id")
+	// Get all boxes
+	r.GET("/boxes", func(c *gin.Context) {
+		//TODO Get all boxes data from SQlite
+		alleKisten, err := GetBoxes()
+		checkErr(err)
 
-	//TODO Delete box data in SQlite
+		if alleKisten == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No Records Found"})
+			return
+		} else {
+			//TODO Return all boxes data
+			c.JSON(http.StatusOK, gin.H{"data": alleKisten})
+		}
+	})
 
-	//TODO Return box data
-	c.JSON(http.StatusOK, gin.H{"Kiste löschen": ID})
+	// Get all comments
+	r.GET("/comments", func(c *gin.Context) {
+		//TODO Get all boxes data from SQlite
+		alleKommentare, err := GetComments()
+		checkErr(err)
+
+		if alleKommentare == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No Records Found"})
+			return
+		} else {
+			//TODO Return all boxes data
+			c.JSON(http.StatusOK, gin.H{"data": alleKommentare})
+		}
+	})
+
+	// Get all comments
+	r.GET("/pictures", func(c *gin.Context) {
+		//TODO Get all boxes data from SQlite
+		alleBilder, err := GetPictures()
+		checkErr(err)
+
+		if alleBilder == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "No Records Found"})
+			return
+		} else {
+			//TODO Return all boxes data
+			c.JSON(http.StatusOK, gin.H{"data": alleBilder})
+		}
+	})
+
+	return r
 }
 
 // Funktion zum Abfragen aller Kiste
-func GetKisten() ([]kiste, error) {
+func GetBoxes() ([]kiste, error) {
 
 	rows, err := DB.Query("SELECT id, Name, Beschreibung, Ersteller, Erstellungsdatum, Änderer, Änderungssdatum, Verantwortlicher, Ort from Kiste;")
 
@@ -141,4 +180,82 @@ func GetKisten() ([]kiste, error) {
 	}
 
 	return alleKisten, err
+}
+
+// Funktion zum Abfragen aller kommentare
+func GetComments() ([]kommentar, error) {
+
+	rows, err := DB.Query("SELECT id, Kommentar, Ersteller, Erstellungsdatum, box_id from Kommentare;")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	alleKommentare := make([]kommentar, 0)
+
+	for rows.Next() {
+		einzelneKommentar := kommentar{}
+		err = rows.Scan(&einzelneKommentar.id, &einzelneKommentar.Kommentar, &einzelneKommentar.Ersteller, &einzelneKommentar.Erstellungsdatum, &einzelneKommentar.box_id)
+
+		if err != nil {
+			return nil, err
+		}
+
+		alleKommentare = append(alleKommentare, einzelneKommentar)
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return alleKommentare, err
+}
+
+func GetPictures() ([]bild, error) {
+
+	rows, err := DB.Query("SELECT id, Ersteller, Erstellungsdatum, box_id from bilder;")
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	alleBilder := make([]bild, 0)
+
+	for rows.Next() {
+		einzelnesBild := bild{}
+		err = rows.Scan(&einzelnesBild.id, &einzelnesBild.Ersteller, &einzelnesBild.Erstellungsdatum, &einzelnesBild.box_id)
+
+		if err != nil {
+			return nil, err
+		}
+
+		alleBilder = append(alleBilder, einzelnesBild)
+	}
+
+	err = rows.Err()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return alleBilder, err
+}
+
+// Funktion zum Prüfen nach Error -> verwendet in den Router-Funktionen
+func checkErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func main() {
+	ConnectDatabase()
+	r := setupRouter()
+	r.Run(":8080")
 }
