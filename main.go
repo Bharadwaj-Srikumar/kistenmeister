@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -11,15 +12,19 @@ import (
 )
 
 var DB *sql.DB
+var dbPath = "./test.db"
 
 func ConnectDatabase() error {
-	db, err := sql.Open("sqlite3", "./kistenmeister.db")
-	if err != nil {
+	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
 		return err
 	}
-
-	DB = db
-	return nil
+	db, err := sql.Open("sqlite3", dbPath)
+	if err != nil {
+		return err
+	} else {
+		DB = db
+		return nil
+	}
 }
 
 type kiste struct {
